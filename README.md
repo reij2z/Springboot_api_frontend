@@ -1,105 +1,150 @@
-## Next.js（フロントエンド）README
+# Next.js メモ帳アプリ（フロントエンド）
 
-```md
-# Next.js Frontend for Spring Boot API
-
-Spring Boot + PostgreSQL バックエンドと連携する  
-簡易メッセージ管理（CRUD）フロントアプリです。
+**Spring Boot + PostgreSQL API** と連携するメモ帳アプリのフロントエンドです。  
+Next.js を使用し、ブラウザ上でメモの作成・表示・更新・削除・検索を行えます。
 
 ---
 
-## 技術構成
+## 特長
 
-* **Next.js 14（App Router）**
-* **fetch API** で Spring Boot と通信
-* **POST / PUT / DELETE** に対応
-* **エラー時 alert 表示**（404 / ネットワーク異常など）
+- **Next.js 14 (App Router構成)**
+- **fetch API** によるバックエンド通信
+- **環境変数で API 接続先を切り替え**
+- **メモの一覧・追加・編集・削除・検索**
+- **CORS 対応済み（Spring Boot 側の WebConfig設定）**
 
 ---
 
 ## 動作環境
 
-| 要件 | 内容 |
-|------|------|
-| Node.js | 20 以上（LTS） |
-| npm | 10 以上 |
-| API | `http://localhost:8080` |
-| ポート | フロント: `3000` |
+| 項目 | 推奨バージョン |
+|------|----------------|
+| Node.js | 18 以上 |
+| npm | 9 以上 |
+| バックエンド | Spring Boot + PostgreSQL |
+| OS | Windows / macOS / Linux |
 
 ---
 
-## セットアップ & 起動
+## セットアップ手順
+
+### 1. クローン
+
+git clone https://github.com/reij2z/Springboot_api_frontend.git
+cd Springboot_api_frontend
+
+---
+
+### 2. 依存関係のインストール
 
 ```bash
-# 新規作成（初回のみ）
-npx create-next-app@latest springboot-api-frontend --use-npm --js --eslint
+npm install
+```
 
-# プロジェクトへ移動
-cd springboot-api-frontend
+---
 
-# 環境変数設定
-echo NEXT_PUBLIC_API_BASE=http://localhost:8080 > .env.local
+### 3. 環境変数の設定
 
-# 起動
+プロジェクト直下に `.env.local` を作成し、バックエンドAPIのURLを指定します。
+
+```env
+NEXT_PUBLIC_API_BASE=http://localhost:8080
+```
+
+バックエンドが別ポートで動作している場合は適宜変更してください。
+例：`http://localhost:8081`
+
+---
+
+### 4. 開発サーバーの起動
+
+```bash
 npm run dev
-````
+```
 
-アクセス：
+ブラウザで以下を開いてください：
 [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## 主な機能
+## アプリの使い方
 
-| 機能        | 内容                      |
-| --------- | ----------------------- |
-| メッセージ一覧   | GET `/messages`         |
-| 新規登録      | POST `/messages`        |
-| 編集        | PUT `/messages/{id}`    |
-| 削除        | DELETE `/messages/{id}` |
-| バリデーション   | 空文字は送信不可                |
-| エラーハンドリング | ネットワークエラー時に alert 表示    |
+### 一覧表示
+
+起動直後にバックエンドの `/notes` API から全メモを取得して一覧表示します。
+
+### メモの追加
+
+上部の入力フォームに内容を入力して「追加」をクリックすると、
+`POST /notes` が呼び出され、PostgreSQL にメモが保存されます。
+
+### 編集
+
+各メモ右側の「編集」ボタンをクリック → 内容変更後に「保存」で `PUT /notes/{id}` を送信。
+
+### 削除
+
+「削除」ボタンをクリックすると `DELETE /notes/{id}` が実行されます。
+
+### 検索
+
+検索欄にキーワードを入力して「検索」ボタンを押すと
+`GET /notes/search?keyword=xxx` が呼び出されます。
 
 ---
 
-## ディレクトリ構成
+## プロジェクト構成
 
 ```
-springboot-api-frontend/
+Springboot_api_frontend/
 ├─ app/
-│   └─ page.js        # UI + CRUD ロジック
-├─ .env.local          # API_BASE 設定
+│  ├─ page.js              # メイン画面（一覧・検索・登録）
+│  ├─ globals.css          # 全体スタイル
+│  └─ layout.js            # ページレイアウト
+├─ public/
+│  └─ favicon.ico
+├─ .env.local              # 環境変数（API接続URL）
 ├─ package.json
+├─ next.config.mjs
 └─ README.md
 ```
 
 ---
 
-## 仕組み概要
+## バックエンド連携
 
-1. `fetch()` で Spring Boot の API（8080番）を呼び出し
-2. `POST` 時に JSON を送信 → API → DB 保存
-3. `GET` で一覧を取得してレンダリング
-4. `PUT`／`DELETE` で更新・削除
+バックエンド（Spring Boot + PostgreSQL）
+[https://github.com/reij2z/Springboot_api_demo](https://github.com/reij2z/Springboot_api_demo)
 
----
+**利用しているAPIエンドポイント**
 
-## 今後の拡張
-
-### Step 1（完了）
-
-* Spring Boot API との CRUD 連携（POST / PUT / DELETE）
-
-### Step 2（開発予定）
-
-* メモ帳アプリへ発展
-
-  * タイトル・本文・作成日時の入力フォーム追加
-  * 検索・並び替え機能
+| 操作   | メソッド   | エンドポイント                  | 内容       |
+| ---- | ------ | ------------------------ | -------- |
+| 一覧取得 | GET    | `/notes`                 | 全メモを取得   |
+| 新規作成 | POST   | `/notes`                 | 新しいメモを登録 |
+| 更新   | PUT    | `/notes/{id}`            | 指定メモを更新  |
+| 削除   | DELETE | `/notes/{id}`            | 指定メモを削除  |
+| 検索   | GET    | `/notes/search?keyword=` | キーワード検索  |
 
 ---
 
-### 作者
+## よくあるエラーと対処
 
-越智 玲仁（Reiji Ochi）
-Spring Boot × Next.js × PostgreSQL 学習プロジェクト
+| エラー                          | 原因                   | 対処                                 |
+| ---------------------------- | -------------------- | ---------------------------------- |
+| `TypeError: Failed to fetch` | APIサーバーが未起動またはURL不一致 | `NEXT_PUBLIC_API_BASE` を確認         |
+| `CORS policy` エラー            | バックエンド側でCORS設定がない    | Spring Boot の `WebConfig.java` を確認 |
+| 画面が真っ白                       | JSONパースエラーなど         | ブラウザコンソールを確認                       |
+
+---
+
+## 作者
+
+**越智 玲仁（Reiji Ochi）**
+GitHub: [reij2z](https://github.com/reij2z)
+
+---
+
+## ライセンス
+
+MIT License
