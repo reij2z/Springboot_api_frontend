@@ -1,103 +1,126 @@
-import Image from "next/image";
+'use client';
+import { useEffect, useState } from 'react';
+
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8080';
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [message, setMessage] = useState('');
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [posting, setPosting] = useState(false);
+  const [error, setError] = useState('');
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+  async function fetchMessages() {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_BASE}/messages`, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`GET /messages -> ${res.status}`);
+      setItems(await res.json());
+    } catch (e) {
+      setError(String(e));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => { fetchMessages(); }, []);
+
+  async function onSubmit(e) {
+    e.preventDefault();
+    if (!message.trim()) return;
+    try {
+      setPosting(true);
+      setError('');
+      const res = await fetch(`${API_BASE}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message }),
+      });
+      if (!res.ok) throw new Error(`POST /messages -> ${res.status}`);
+      setMessage('');
+      await fetchMessages();
+    } catch (e) {
+      alert(`送信に失敗しました: ${e}`);
+      setError(String(e));
+    } finally {
+      setPosting(false);
+    }
+  }
+
+  // ★更新（PUT）
+  async function onUpdate(id) {
+    const text = prompt('新しいメッセージを入力してください');
+    if (!text || !text.trim()) return;
+    try {
+      const res = await fetch(`${API_BASE}/messages/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text }),
+      });
+      if (!res.ok) {
+        if (res.status === 404) return alert('対象のメッセージが見つかりません（404）');
+        throw new Error(`PUT /messages/${id} -> ${res.status}`);
+      }
+      await fetchMessages();
+    } catch (e) {
+      alert(`更新に失敗しました: ${e}`);
+    }
+  }
+
+  // ★削除（DELETE）
+  async function onDelete(id) {
+    if (!confirm(`id=${id} を削除しますか？`)) return;
+    try {
+      const res = await fetch(`${API_BASE}/messages/${id}`, { method: 'DELETE' });
+      // 204 が正（No Content）。404 は「既に無い」想定の可能性もあるので別メッセージ
+      if (!(res.ok || res.status === 204)) {
+        if (res.status === 404) return alert('対象のメッセージが見つかりません（404）');
+        throw new Error(`DELETE /messages/${id} -> ${res.status}`);
+      }
+      await fetchMessages();
+    } catch (e) {
+      alert(`削除に失敗しました: ${e}`);
+    }
+  }
+
+  return (
+    <main style={{ maxWidth: 720, margin: '40px auto', padding: 16, fontFamily: 'system-ui, sans-serif' }}>
+      <h1>Messages Demo (Next.js → Spring Boot → PostgreSQL)</h1>
+
+      <form onSubmit={onSubmit} style={{ display: 'flex', gap: 8, margin: '16px 0' }}>
+        <input
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="メッセージを入力"
+          style={{ flex: 1, padding: 10, border: '1px solid #ccc', borderRadius: 10 }}
+        />
+        <button type="submit" disabled={posting} style={{ padding: '10px 16px', borderRadius: 10 }}>
+          {posting ? '送信中…' : '送信'}
+        </button>
+      </form>
+
+      {error && <p style={{ color: 'crimson' }}>Error: {error}</p>}
+
+      <section>
+        <h2>一覧</h2>
+        {loading ? (
+          <p>読み込み中…</p>
+        ) : items.length === 0 ? (
+          <p>データがありません</p>
+        ) : (
+          <ul style={{ listStyle: 'none', padding: 0 }}>
+            {items.map((it) => (
+              <li key={it.id} style={{ padding: 8, borderBottom: '1px solid #eee', display: 'flex', gap: 8, alignItems: 'center' }}>
+                <div style={{ flex: 1 }}>
+                  <code style={{ opacity: 0.6 }}>#{it.id}</code> {it.message}
+                </div>
+                <button onClick={() => onUpdate(it.id)}>編集</button>
+                <button onClick={() => onDelete(it.id)} style={{ color: 'white', background: '#c0392b' }}>削除</button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </main>
   );
 }

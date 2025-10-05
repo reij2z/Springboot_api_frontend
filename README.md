@@ -1,36 +1,107 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+## Next.js（フロントエンド）README
 
-## Getting Started
+```md
+# Next.js Frontend for Spring Boot API
 
-First, run the development server:
+Spring Boot + PostgreSQL バックエンドと連携する  
+簡易メッセージ管理（CRUD）フロントアプリです。
+
+---
+
+## 技術構成
+
+* **Next.js 14（App Router）**
+* **fetch API** で Spring Boot と通信
+* **POST / PUT / DELETE** に対応
+* **エラー時 alert 表示**（404 / ネットワーク異常など）
+
+---
+
+## 動作環境
+
+| 要件 | 内容 |
+|------|------|
+| Node.js | 20 以上（LTS） |
+| npm | 10 以上 |
+| API | `http://localhost:8080` |
+| ポート | フロント: `3000` |
+
+---
+
+## セットアップ & 起動
 
 ```bash
+# 新規作成（初回のみ）
+npx create-next-app@latest springboot-api-frontend --use-npm --js --eslint
+
+# プロジェクトへ移動
+cd springboot-api-frontend
+
+# 環境変数設定
+echo NEXT_PUBLIC_API_BASE=http://localhost:8080 > .env.local
+
+# 起動
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+````
+
+アクセス：
+[http://localhost:3000](http://localhost:3000)
+
+---
+
+## 主な機能
+
+| 機能        | 内容                      |
+| --------- | ----------------------- |
+| メッセージ一覧   | GET `/messages`         |
+| 新規登録      | POST `/messages`        |
+| 編集        | PUT `/messages/{id}`    |
+| 削除        | DELETE `/messages/{id}` |
+| バリデーション   | 空文字は送信不可                |
+| エラーハンドリング | ネットワークエラー時に alert 表示    |
+
+---
+
+## ディレクトリ構成
+
+```
+springboot-api-frontend/
+├─ app/
+│   └─ page.js        # UI + CRUD ロジック
+├─ .env.local          # API_BASE 設定
+├─ package.json
+└─ README.md
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## 仕組み概要
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. `fetch()` で Spring Boot の API（8080番）を呼び出し
+2. `POST` 時に JSON を送信 → API → DB 保存
+3. `GET` で一覧を取得してレンダリング
+4. `PUT`／`DELETE` で更新・削除
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 今後の拡張
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Step 1（完了）
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+* Spring Boot API との CRUD 連携（POST / PUT / DELETE）
 
-## Deploy on Vercel
+### Step 2（開発予定）
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+* メモ帳アプリへ発展
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+  * タイトル・本文・作成日時の入力フォーム追加
+  * 検索・並び替え機能
+
+---
+
+### 作者
+
+越智 玲仁（Reiji Ochi）
+Next.js × Spring Boot × PostgreSQL 連携デモ
+
+```
