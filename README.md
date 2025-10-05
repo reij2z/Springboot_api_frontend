@@ -102,6 +102,4 @@ springboot-api-frontend/
 ### 作者
 
 越智 玲仁（Reiji Ochi）
-Next.js × Spring Boot × PostgreSQL 連携デモ
-
-```
+Spring Boot × Next.js × PostgreSQL 学習プロジェクト
